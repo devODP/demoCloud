@@ -22,6 +22,17 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import java.util.Date;
+import java.text.SimpleDateFormat;
+
+
 public class MultipleKafkaConsumer {
 	private static final String TOPIC = "KafkaTestTopic";
 	private static final String BOOTSTRAP_SERVERS = "localhost:9094";
@@ -112,6 +123,27 @@ public class MultipleKafkaConsumer {
 					double result = diff.reduce((a,b)->a+b);
 					
 					ps.println(result);
+
+					// formatting unique datetime as id for dynamoDB entry
+					// Get the current date
+					LocalDate currentDate = LocalDate.now();
+
+					// Format the date to a string
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					String dateString = currentDate.format(formatter);
+
+					// updating tables in dynamoDB
+					DynamoDbClient client = DynamoDbClient.builder()
+                            .region(Region.US_EAST_2) // Replace with your desired region
+                            .build();
+
+                    PutItemRequest request = PutItemRequest.builder()
+                            .tableName("dynamodb_table_demo")
+                            .item(Map.of("id", AttributeValue.builder().s("dateString").build(),
+                                         "name", AttributeValue.builder().n(result).build()))
+                            .build();
+
+					PutItemResponse response = client.putItem(request);
 
 				}
 			}
