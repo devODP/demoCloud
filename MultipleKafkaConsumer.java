@@ -109,7 +109,7 @@ public class MultipleKafkaConsumer {
 					
 					JavaRDD<Double> diff = rdd1.subtract(rdd2);
 					
-					List<Double> result = diff.collect();
+					double result = diff.reduce((a,b)->a+b);
 					
 					ps.println(result);
 
